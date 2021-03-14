@@ -20,9 +20,12 @@
         "console": true
     },
     "dashboard" :[
-    {"coord":[0,0,2,2],"topics":["src/triac/triac/rpmTarget"],"type":"LineChart"},
-    {"coord":[0,2,2,10],"topics":["src/triac/triac/rpmMeasured"],"type":"LineChart"},
-    {"coord":[0,12,2,2],"topics":["src/triac/triac/rpmTarget"],"type":"LineChart"},
-    {"coord":[2,0,2,2],"topics":["src/triac/triac/rpmTarget"],"type":"LineChart"}
+    {"coord":[0,0,1,1],"topics":["src/triac/triac/current"],"type":"LineChart","min":0.0,"max":1000.0,"samples":100,"timeSpan":100},
+    {"coord":[0,1,1,1],"topics":["src/triac/triac/rpmMeasured"],"type":"LineChart","min":0.0,"max":20000.0,"samples":10},
+    {"coord":[0,2,1,1],"topics":["src/triac/wifi/ip"],"type":"Text","label":"IP address "},
+    {"coord":[0,3,1,1],"topics":["src/triac/triac/rpmTarget"],"type":"Space"},
+    {"coord":[1,0,1,1],"topics":["src/triac/triac/rpmTarget","src/triac/triac/rpmMeasured","src/triac/triac/phase"],"type":"LineChart","min":-10.0,"max":20000.0,"samples":1000,"timeSpan":100},
+    {"coord":[1,0,1,1],"topics":["src/triac/triac/integral","src/triac/triac/error"],"type":"LineChart","min":-10.0,"max":200.0,"samples":100,"timeSpan":100}
+
     ]
 }

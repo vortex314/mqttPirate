@@ -16,14 +16,18 @@ SOURCES += \
     mqttlinegraph.cpp \
     mqttlistener.cpp \
     mqttmodel.cpp \
-    ../limero/linux/*.cpp
+    ../limero/linux/*.cpp \
+    mqtttable.cpp \
+    mqtttext.cpp
 
 HEADERS += \
     configuration.h \
     mainwindow.h \
     mqttlinegraph.h \
     mqttlistener.h \
-    mqttmodel.h
+    mqttmodel.h \
+    mqtttable.h \
+    mqtttext.h
 
 FORMS += \
     mainwindow.ui

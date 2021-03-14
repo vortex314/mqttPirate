@@ -5,12 +5,14 @@
 #include <QTableWidget>
 #include <QLayout>
 #include <QGridLayout>
+#include <QSpacerItem>
 #include<configuration.h>
 #include <Mqtt.h>
 #include <MqttPaho.h>
 #include <limero.h>
 #include <mqttmodel.h>
 #include <mqttlinegraph.h>
+#include <mqtttext.h>
 
 #include <unistd.h>
 
@@ -34,21 +36,23 @@ int main(int argc, char *argv[])
     mqtt.connect();
     JsonArray subscriptions = config["mqtt"]["subscribe"].as<JsonArray>();
     for (auto subscription : subscriptions) {
-      mqtt.subscribe(subscription.as<std::string>());
+        mqtt.subscribe(subscription.as<std::string>());
     }
 
     INFO(" mqttView started. Build : %s ", __DATE__ " " __TIME__);
 
 
     QApplication a(argc, argv);
- //   MainWindow w;
+    //   MainWindow w;
     QGridLayout *gridLayout = new QGridLayout;
     gridLayout->setContentsMargins(2,2,2,2);
-    gridLayout->setHorizontalSpacing(2);
+    gridLayout->setHorizontalSpacing(0);
+    gridLayout->setVerticalSpacing(0);
+
     QWidget *w = new QWidget();
     w->setLayout(gridLayout);
     w->setWindowTitle("Grid Layouts (12x6)");
-    w->setFixedSize(500,500);
+    //    w->setFixedSize(500,500);
 
 
     mqttModel = new MqttModel();
@@ -65,20 +69,28 @@ int main(int argc, char *argv[])
         std::string type=item["type"];
         JsonArray topics=item["topics"];
         if ( type.compare("LineChart")==0) {
+            INFO("add %s",type.c_str());
             MqttLineGraph* mqttGraph=new MqttLineGraph();
             mqttGraph->config(item);
-            for(std::string topic:topics){
-                mqtt.incoming>>mqttGraph;
-            }
-           gridLayout->addWidget(mqttGraph,row,col,rowSpan,colSpan);
+            mqtt.incoming>>mqttGraph;
+            gridLayout->addWidget(mqttGraph,row,col,rowSpan,colSpan);
+        } else if ( type.compare("Text")==0) {
+            INFO("add %s",type.c_str());
+            MqttText* mqttText=new MqttText();
+            mqttText->config(item);
+            mqtt.incoming>>mqttText;
+            gridLayout->addWidget(mqttText,row,col,rowSpan,colSpan);
+        } else if ( type.compare("Space")==0) {
+            INFO("add %s",type.c_str());
+            gridLayout->addItem(new QSpacerItem(10,10,QSizePolicy::Maximum,QSizePolicy::Minimum),row,col,rowSpan,colSpan);
         }
     }
 
     mqtt.incoming >>
-        [&](const MqttMessage &msg) {
-//        INFO(" %s : %s ",msg.topic.c_str(),msg.message.c_str());
+            [&](const MqttMessage &msg) {
+        //        INFO(" %s : %s ",msg.topic.c_str(),msg.message.c_str());
         mqttModel->update(msg.topic, msg.message); };
-  /*  QTableView* tableView =  w.findChild<QTableView*>("tableView");
+    /*  QTableView* tableView =  w.findChild<QTableView*>("tableView");
     if ( tableView ) {
         tableView->setModel(mqttModel);
         tableView->show();
@@ -94,31 +106,31 @@ int main(int argc, char *argv[])
 
 
 void commandArguments(JsonObject& config, int argc, char **argv) {
-  int opt;
+    int opt;
 
-  while ((opt = getopt(argc, argv, "f:m:l:v:")) != -1) {
-    switch (opt) {
-      case 'm':
-        config["mqtt"]["connection"] = optarg;
-        break;
-      case 'f':
-        config["configFile"] = optarg;
-        break;
-      case 'v': {
-        std::string logLevel;
-        logLevel += optarg[0];
-        config["log"]["level"] = logLevel;
-        break;
-      }
-      case 'l':
-        config["log"]["file"] = optarg;
-        break;
-      default: /* '?' */
-        fprintf(stderr,
-                "Usage: %s [-v(TDIWE)] [-f configFile] [-l logFile] [-m "
+    while ((opt = getopt(argc, argv, "f:m:l:v:")) != -1) {
+        switch (opt) {
+        case 'm':
+            config["mqtt"]["connection"] = optarg;
+            break;
+        case 'f':
+            config["configFile"] = optarg;
+            break;
+        case 'v': {
+            std::string logLevel;
+            logLevel += optarg[0];
+            config["log"]["level"] = logLevel;
+            break;
+        }
+        case 'l':
+            config["log"]["file"] = optarg;
+            break;
+        default: /* '?' */
+            fprintf(stderr,
+                    "Usage: %s [-v(TDIWE)] [-f configFile] [-l logFile] [-m "
                 "mqtt_connection]\n",
-                argv[0]);
-        exit(EXIT_FAILURE);
+                    argv[0]);
+            exit(EXIT_FAILURE);
+        }
     }
-  }
 }
