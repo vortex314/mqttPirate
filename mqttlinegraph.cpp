@@ -6,26 +6,6 @@ MqttLineGraph::MqttLineGraph() : QChartView()
     _chart = new QChart;
     _chartView=this;
     _chartView->setMinimumSize(100, 100);
-
-/*
-    _axisX->setTickCount(5);
-    _axisX->setFormat("hh:mm:ss.zzz");
-    QDateTime dt=QDateTime::currentDateTime();
-    qint64 ms=dt.toMSecsSinceEpoch();
-
-    _axisX->setRange(dt,dt.addSecs(100));
-    _axisY->setRange(_min,_max);
-    // _chart->legend()->hide();
-    //    _chart->setAnimationOptions(QChart::AllAnimations);
-    _chart->addSeries(_lineSeries);
-    _chart->addAxis(_axisX,Qt::AlignBottom);
-    _chart->addAxis(_axisY,Qt::AlignLeft);
-    _lineSeries->attachAxis(_axisX);
-    _lineSeries->attachAxis(_axisY);
-
-    //   _chart->createDefaultAxes();
-    _chart->setTitle("Simple line chart example");
-*/
     setChart(_chart);
     //    _chartView = new QChartView(this);
     _chartView->setRenderHint(QPainter::Antialiasing);

@@ -1,6 +1,11 @@
 #include "mqtttable.h"
 
-MqttTable::MqttTable()
+MqttTable::MqttTable(MqttModel* mqttModel)
 {
-
+    setModel(mqttModel);
+    show();
 }
+
+void MqttTable::config(JsonObject &){}
+
+void MqttTable::on(const MqttMessage& ){}

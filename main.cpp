@@ -13,11 +13,12 @@
 #include <mqttmodel.h>
 #include <mqttlinegraph.h>
 #include <mqtttext.h>
+#include <mqtttable.h>
 
 #include <unistd.h>
 
 void commandArguments(JsonObject& config, int argc, char **argv) ;
-Log logger(2048);
+Log logger(5120);
 StaticJsonDocument<100000> doc;
 JsonObject config;
 Thread mainThread("main");
@@ -80,6 +81,12 @@ int main(int argc, char *argv[])
             mqttText->config(item);
             mqtt.incoming>>mqttText;
             gridLayout->addWidget(mqttText,row,col,rowSpan,colSpan);
+        }else if ( type.compare("Table")==0) {
+            INFO("add %s",type.c_str());
+            MqttTable* mqttTable=new MqttTable(mqttModel);
+            mqttTable->config(item);
+            mqtt.incoming>>mqttTable;
+            gridLayout->addWidget(mqttTable,row,col,rowSpan,colSpan);
         } else if ( type.compare("Space")==0) {
             INFO("add %s",type.c_str());
             gridLayout->addItem(new QSpacerItem(10,10,QSizePolicy::Maximum,QSizePolicy::Minimum),row,col,rowSpan,colSpan);
