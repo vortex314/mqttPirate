@@ -6,6 +6,8 @@ MqttLineGraph::MqttLineGraph() : QChartView()
     _chart = new QChart;
     _chartView=this;
     _chartView->setMinimumSize(100, 100);
+    _chart->layout()->setContentsMargins(0, 0, 0, 0);
+    _chart->setBackgroundRoundness(0);
     setChart(_chart);
     //    _chartView = new QChartView(this);
     _chartView->setRenderHint(QPainter::Antialiasing);
@@ -37,6 +39,47 @@ void MqttLineGraph::on(const MqttMessage& m){
             //            _chart->update();
             INFO(" %s : %f",_topic.c_str(),y);
         }
+    }
+}
+
+void MqttLineGraph::config(YAML::Node& node){
+    try {
+        YAML::Node topics=node["topics"];
+        _min = node["values"][0].as<float>() ;
+        _max = node["values"][1].as<float>();
+        _sampleCount = node["samples"].as<float>();
+        _timeSpan = 100;
+        _timeSpan *= 1000; // to  msec
+
+        QValueAxis* yAxis = new QValueAxis();
+        yAxis->setMax(_max);
+        yAxis->setMin(_min);
+        yAxis->setRange(_min,_max);
+        _chart->addAxis(yAxis,Qt::AlignLeft);
+
+
+        QDateTimeAxis* xAxis = new QDateTimeAxis();
+        xAxis->setTickCount(5);
+        QDateTime dt=QDateTime::currentDateTime();
+        xAxis->setRange(dt,dt.addSecs(100));
+        xAxis->setFormat("hh:mm:ss.zzz");
+        _chart->addAxis(xAxis,Qt::AlignBottom);
+
+        for (YAML::const_iterator it=topics.begin();it!=topics.end();++it) {
+            std::string topic = it->as<std::string>();
+            Graph graph={topic.c_str(),new QLineSeries(),xAxis,yAxis};
+            _chart->addSeries(graph.lineSeries);
+            graph.lineSeries->attachAxis(xAxis);
+            graph.lineSeries->attachAxis(yAxis);
+            graph.lineSeries->setName(topic.c_str());
+            _lines += graph;
+            _topic=topic;
+        }
+
+
+        INFO(" linegraph : %s %f -> %f ",_topic.c_str(),_min,_max);
+    }  catch (std::exception& ex) {
+        INFO("Exception : %s ",ex.what());
     }
 }
 

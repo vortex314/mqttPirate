@@ -34,11 +34,12 @@ FORMS += \
 
 DEFINES += LINUX
 
-LIBS += -L"../paho.mqtt.c/build/output" -l:libpaho-mqtt3c.a
+LIBS += -L"../paho.mqtt.c/build/output" -l:libpaho-mqtt3c.a -L"../yaml-cpp/build" -l:libyaml-cpp.a
 
-INCLUDEPATH += ../limero/inc ../limero/linux ../ArduinoJson/src ../paho.mqtt.c/src
+INCLUDEPATH += ../limero/inc ../limero/linux ../ArduinoJson/src ../paho.mqtt.c/src ../yaml-cpp/include
 
 DISTFILES += \
+    config.yml \
     mqttPirate.json
 
 

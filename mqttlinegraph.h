@@ -37,6 +37,7 @@ public:
     MqttLineGraph();
     void on(const MqttMessage&);
     void config(JsonObject& );
+    void config(YAML::Node& );
 };
 
 #endif // MQTTLINEGRAPH_H

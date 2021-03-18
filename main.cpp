@@ -5,6 +5,7 @@
 #include <QTableWidget>
 #include <QLayout>
 #include <QGridLayout>
+#include <QVBoxLayout>
 #include <QSpacerItem>
 #include<configuration.h>
 #include <Mqtt.h>
@@ -17,6 +18,21 @@
 
 #include <unistd.h>
 
+const char* ContentType(YAML::Node& node){
+    YAML::NodeType::value type=node.Type();
+    const char* types[]={"Undefined", "Null", "Scalar", "Sequence", "Map"};
+    return types[type];
+}
+
+
+bool endsWith (std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
+
 void commandArguments(JsonObject& config, int argc, char **argv) ;
 Log logger(5120);
 StaticJsonDocument<100000> doc;
@@ -27,7 +43,6 @@ MqttModel* mqttModel;
 
 int main(int argc, char *argv[])
 {
-    Configuration::load(doc,config,"/home/lieven/workspace/mqttPirate/mqttPirate.json");
     commandArguments(config,argc,argv);
     std::string level = config["level"] | "I";
     logger.setLogLevel(level[0]);
@@ -45,16 +60,52 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     //   MainWindow w;
-    QGridLayout *gridLayout = new QGridLayout;
-    gridLayout->setContentsMargins(2,2,2,2);
-    gridLayout->setHorizontalSpacing(0);
-    gridLayout->setVerticalSpacing(0);
+    QVBoxLayout *vLayout = new QVBoxLayout();
+    vLayout->setContentsMargins(2,2,2,2);
 
     QWidget *w = new QWidget();
-    w->setLayout(gridLayout);
+    w->setLayout(vLayout);
     w->setWindowTitle("Grid Layouts (12x6)");
-    //    w->setFixedSize(500,500);
+    Configuration::load(doc,config,"/home/lieven/workspace/mqttPirate/mqttPirate.json");
 
+    try {
+        YAML::Node cfg = YAML::LoadFile("/home/lieven/workspace/mqttPirate/config.yml");
+
+        YAML::Node dashboard=cfg["dashboard"];
+        INFO(" %s ",ContentType(cfg));
+        for (YAML::const_iterator it=dashboard.begin();it!=dashboard.end();++it) {
+            std::string key = it->first.as<std::string>();
+            if ( key.compare("row")==0 && it->second.IsSequence()) {
+                QHBoxLayout* hLayout=new QHBoxLayout();
+                vLayout->addLayout(hLayout);
+                YAML::Node row=it->second;
+                for (YAML::const_iterator rowItem=row.begin();rowItem!=row.end();++rowItem){
+                    std::string itemName= rowItem->as<std::string>();
+                    INFO(" %s",itemName.c_str());
+                    YAML::Node itemCfg=cfg[itemName];
+                    if ( endsWith(itemName,"Chart")) {
+                        MqttLineGraph* mqttGraph=new MqttLineGraph();
+                        mqttGraph->config(itemCfg);
+                        mqtt.incoming>>mqttGraph;
+                        hLayout->addWidget(mqttGraph);
+                    } else  if ( endsWith(itemName,"Button")) {
+                        QPushButton *button=new QPushButton();
+                        std::string label =itemCfg["label"].as<std::string>();
+                        button->setText(label.c_str());
+                        hLayout->addWidget(button);
+                    }
+                }
+                hLayout->addItem(new QSpacerItem(10,10,QSizePolicy::Expanding,QSizePolicy::Minimum));
+            }
+        }
+        vLayout->addItem(new QSpacerItem(10,10,QSizePolicy::Minimum,QSizePolicy::Expanding));
+    }  catch (std::exception& ex) {
+        INFO("Exception : %s ",ex.what());
+    }
+
+
+    //    w->setFixedSize(500,500);
+/*
 
     mqttModel = new MqttModel();
 
@@ -74,29 +125,29 @@ int main(int argc, char *argv[])
             MqttLineGraph* mqttGraph=new MqttLineGraph();
             mqttGraph->config(item);
             mqtt.incoming>>mqttGraph;
-            gridLayout->addWidget(mqttGraph,row,col,rowSpan,colSpan);
+            gridLayout->addWidget(mqttGraph);
         } else if ( type.compare("Text")==0) {
             INFO("add %s",type.c_str());
             MqttText* mqttText=new MqttText();
             mqttText->config(item);
             mqtt.incoming>>mqttText;
-            gridLayout->addWidget(mqttText,row,col,rowSpan,colSpan);
+            gridLayout->addWidget(mqttText);
         }else if ( type.compare("Table")==0) {
             INFO("add %s",type.c_str());
             MqttTable* mqttTable=new MqttTable(mqttModel);
             mqttTable->config(item);
             mqtt.incoming>>mqttTable;
-            gridLayout->addWidget(mqttTable,row,col,rowSpan,colSpan);
+            gridLayout->addWidget(mqttTable);
         } else if ( type.compare("Space")==0) {
             INFO("add %s",type.c_str());
-            gridLayout->addItem(new QSpacerItem(10,10,QSizePolicy::Maximum,QSizePolicy::Minimum),row,col,rowSpan,colSpan);
+            gridLayout->addItem(new QSpacerItem(10,10,QSizePolicy::Maximum,QSizePolicy::Minimum));
         }
     }
 
     mqtt.incoming >>
             [&](const MqttMessage &msg) {
         //        INFO(" %s : %s ",msg.topic.c_str(),msg.message.c_str());
-        mqttModel->update(msg.topic, msg.message); };
+        mqttModel->update(msg.topic, msg.message); };*/
     /*  QTableView* tableView =  w.findChild<QTableView*>("tableView");
     if ( tableView ) {
         tableView->setModel(mqttModel);

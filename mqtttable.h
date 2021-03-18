@@ -10,6 +10,7 @@
 #include <mqttlistener.h>
 #include <mqttmodel.h>
 #include <limits>
+#include <yaml-cpp/yaml.h>
 
 class MqttTable : public MqttListener,public QTableView
 {
